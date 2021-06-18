@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  * @author XinlindeYu
  * @version 1.0
  * @ClassName InstructionHandle
- * @description
+ * @description 从参数到进入方法此过程的拦截器
  * @date 2021/6/18 0018 下午 2:33
  **/
 public class InstructionHandle implements Consumer<GroupMessageEvent> {
