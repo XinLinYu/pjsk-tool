@@ -13,3 +13,7 @@ repositories {
     maven("https://maven.aliyun.com/repository/public")
     mavenCentral()
 }
+dependencies {
+    implementation("org.projectlombok:lombok:1.18.16")
+    implementation( "org.reflections:reflections:0.9.11")
+}

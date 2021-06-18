@@ -1,13 +1,13 @@
-package com.xinlindeyu;
+package com.projectsekai;
 
-import com.xinlindeyu.controller.PjskListener;
+import com.projectsekai.handle.InstructionHandle;
+import com.projectsekai.listener.PjskListener;
 import net.mamoe.mirai.console.extension.PluginComponentStorage;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.Listener;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
-import net.mamoe.mirai.message.data.MessageChain;
 import org.jetbrains.annotations.NotNull;
 
 public final class PjskHelper extends JavaPlugin {
@@ -28,7 +28,7 @@ public final class PjskHelper extends JavaPlugin {
     @Override
     public void onEnable() {
         getLogger().info("PJSK-Helper Plugin loaded!");
-        PjskListener agent = new PjskListener();
+        InstructionHandle agent = new InstructionHandle();
         // 创建监听
         Listener listener = GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessageEvent.class, agent);
 

@@ -1,4 +1,4 @@
-package com.xinlindeyu.controller;
+package com.projectsekai.listener;
 
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
@@ -10,6 +10,9 @@ import java.util.function.Consumer;
 /**
  * @ClassName 32718353
  * @description Project Sekai监听器
+ *              （已废弃，被Controller取代）
+ *              （已废弃，被Controller取代）
+ *              （已废弃，被Controller取代）
  * @Author XinlindeYu
  * @Date 2021/6/17 0017 下午 2:22
  * @Version 1.0
@@ -18,13 +21,13 @@ public class PjskListener implements Consumer<GroupMessageEvent> {
     public static MiraiLogger log = null;
 
     public static final String[] CMD = {
-            "pjsk", "/pjsk"
+            "/pjsk"
     };
 
     private void stepCmd(Group api, long groupId, long qq, String message, GroupMessageEvent groupMessageEvent) {
         boolean isCMD = false;
         for (String s : CMD) {
-            if (message.contains(s)) {
+            if (message.trim().contains(s)) {
                 isCMD = true;
                 break;
             }

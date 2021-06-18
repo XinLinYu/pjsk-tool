@@ -1,4 +1,4 @@
-package com.xinlindeyu.vo;
+package com.projectsekai.vo;
 
 import java.io.Serializable;
 
