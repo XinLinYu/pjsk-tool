@@ -3,6 +3,7 @@ package com.projectsekai.handle;
 import com.projectsekai.annotation.InstructionTarget;
 import com.projectsekai.annotation.InstructionVal;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
+import net.mamoe.mirai.utils.MiraiLogger;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.ReflectionUtils;
 import org.reflections.Reflections;
@@ -22,8 +23,11 @@ public class InstructionHandle implements Consumer<GroupMessageEvent> {
     // 扫描的包
     private static Reflections reflections = new Reflections("com.projectsekai.controller");
 
+    public static MiraiLogger log = null;
+
     @Override
     public void accept(GroupMessageEvent groupMessageEvent) {
+        log = groupMessageEvent.getBot().getLogger();
         // 获取携带InstructionTarget注解的Class
         Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(InstructionTarget.class);
         for (Class clazz : typesAnnotatedWith) {
@@ -35,7 +39,8 @@ public class InstructionHandle implements Consumer<GroupMessageEvent> {
                     String[] value = annotation.value();
                     for (String val : value) {
                         // 判断注解的值与获得的信息是否一致
-                        if (groupMessageEvent.getMessage().toString().contains(val)) {
+                        String miraiCode = groupMessageEvent.getMessage().serializeToMiraiCode();
+                        if (miraiCode.trim().equalsIgnoreCase(val)) {
                             try {
                                 // 一致则进入方法
                                 method.invoke(clazz.newInstance(), groupMessageEvent);
