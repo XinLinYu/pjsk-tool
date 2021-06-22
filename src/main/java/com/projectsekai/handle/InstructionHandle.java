@@ -2,6 +2,8 @@ package com.projectsekai.handle;
 
 import com.projectsekai.annotation.InstructionTarget;
 import com.projectsekai.annotation.InstructionVal;
+import com.projectsekai.service.impl.FrequencyControlServiceImpl;
+import com.projectsekai.utils.RedisUtil;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.utils.MiraiLogger;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +27,40 @@ public class InstructionHandle implements Consumer<GroupMessageEvent> {
 
     public static MiraiLogger log = null;
 
+    private static RedisUtil redisUtil = null;
+
+    private static FrequencyControlServiceImpl frequencyControlService = null;
+
+    private boolean powerRemindStarterFlag = false;
+
+    public static FrequencyControlServiceImpl getFrequencyControlServiceInstance() {
+        if (frequencyControlService == null) {
+            synchronized (FrequencyControlServiceImpl.class) {
+                if (frequencyControlService == null) {
+                    frequencyControlService = new FrequencyControlServiceImpl();
+                }
+            }
+        }
+        return frequencyControlService;
+    }
+
+    public static RedisUtil getRedisUtilInstance() {
+        if (redisUtil == null) {
+            synchronized (RedisUtil.class) {
+                if (redisUtil == null) {
+                    redisUtil = new RedisUtil();
+                }
+            }
+        }
+        return redisUtil;
+    }
+
     @Override
     public void accept(GroupMessageEvent groupMessageEvent) {
         log = groupMessageEvent.getBot().getLogger();
+        if (!powerRemindStarterFlag) {
+            powerRemindStarter(groupMessageEvent);
+        }
         // 获取携带InstructionTarget注解的Class
         Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(InstructionTarget.class);
         for (Class clazz : typesAnnotatedWith) {
@@ -51,6 +84,18 @@ public class InstructionHandle implements Consumer<GroupMessageEvent> {
                     }
                 }
             }
+        }
+    }
+
+    private void powerRemindStarter(GroupMessageEvent groupMessageEvent) {
+        powerRemindStarterFlag = true;
+        redisUtil = getRedisUtilInstance();
+        Boolean powerRemind = redisUtil.exists("pjsk_powerremind:isstart");
+        log.info("是否已经开启体力小助手：" + powerRemind);
+        frequencyControlService = getFrequencyControlServiceInstance();
+        if (powerRemind) {
+            log.info("体力小助手开始……");
+            frequencyControlService.powerRemindTask(groupMessageEvent);
         }
     }
 }

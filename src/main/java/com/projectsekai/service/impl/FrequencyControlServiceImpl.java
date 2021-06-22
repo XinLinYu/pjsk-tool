@@ -6,9 +6,14 @@ import com.projectsekai.utils.ConstantUtil;
 import com.projectsekai.utils.PropertiesUtil;
 import com.projectsekai.utils.RedisUtil;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
+import net.mamoe.mirai.message.data.Image;
+import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.utils.MiraiLogger;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -35,10 +40,21 @@ public class FrequencyControlServiceImpl implements FrequencyControlService {
         return redisUtil;
     }
 
+    public static MiraiLogger getInstance(GroupMessageEvent groupMessageEvent) {
+        if (log == null) {
+            synchronized (MiraiLogger.class) {
+                if (log == null) {
+                    log = groupMessageEvent.getBot().getLogger();
+                }
+            }
+        }
+        return log;
+    }
+
     @Override
     public void instructionFrequencyControl(String instruction, int expire, GroupMessageEvent groupMessageEvent, String message) {
         redisUtil = getRedisUtilInstance();
-        log = groupMessageEvent.getBot().getLogger();
+        log = getInstance(groupMessageEvent);
         log.info("GroupId：" + groupMessageEvent.getGroup().getId());
         log.info("instruction：" + instruction);
         Boolean instructionExistsStatus = redisUtil.exists("pjsk_" + instruction + ":" + groupMessageEvent.getGroup().getId());
@@ -96,18 +112,70 @@ public class FrequencyControlServiceImpl implements FrequencyControlService {
     }
 
     public void powerRemindTask(GroupMessageEvent groupMessageEvent) {
+        log = getInstance(groupMessageEvent);
+        redisUtil = getRedisUtilInstance();
+        String key = "pjsk_powerremind_time:" + groupMessageEvent.getGroup().getId();
         while (true) {
-            groupMessageEvent.getSubject().sendMessage("大家好，我是本群的提醒烧烤请体力小助手，希望此刻看到消息的人可以和我一起打开PROJECT SEKAI COLORFUL STAGE! feat.初音ミク 清空体力，一小时后，我将继续提醒大家打开烧烤清空体力，和我一起成为一天清八次体力的排名背刺人吧！");
+            Boolean exists = redisUtil.exists(key);
+            if (!exists) {
+                // 请体力小助手图片+文字
+                groupMessageEvent.getSubject().sendMessage(Image.fromId("{067981C8-0D09-BE10-9C25-626D97653999}.jpg").plus(new PlainText("大家好，我是本群的提醒烧烤请体力小助手，希望此刻看到消息的人可以和我一起打开PROJECT SEKAI COLORFUL STAGE! feat.初音ミク 清空体力，一小时后，我将继续提醒大家打开烧烤清空体力，和我一起成为一天清八次体力的排名背刺人吧！")));
+                redisUtil.set(key, String.valueOf(groupMessageEvent.getGroup().getId()), 0);
+                // 1小时提醒一次
+                redisUtil.expire(key, 3600, 0);
+            }
             try {
-                Thread.sleep(3600000);
+                // 每10秒钟检查一次
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            redisUtil = getRedisUtilInstance();
+            // 判断当前是否还需要再次开启，不在开启则跳出循环
             Boolean powerRemind = redisUtil.exists("pjsk_powerremind:isstart");
             if (!powerRemind) {
                 break;
             }
+            // 判断是否在休眠期内，在休眠期则不再执行
+            SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+            Date now = null;
+            Date beginTime = null;
+            Date endTime = null;
+            try {
+                now = df.parse(df.format(new Date()));
+                beginTime = df.parse("23:00");
+                endTime = df.parse("8:00");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            boolean flag = belongCalendar(now, beginTime, endTime);
+            if (flag) {
+                groupMessageEvent.getSubject().sendMessage("Miku酱要睡觉觉啦！明天再继续给大家提醒吧~╰(￣ω￣ｏ)");
+                try {
+                    // 休眠期9小时
+                    Thread.sleep(32400000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+    }
+
+    /**
+     * 判断时间是否在时间段内
+     *
+     * @param nowTime
+     * @param beginTime
+     * @param endTime
+     * @return
+     */
+    private static boolean belongCalendar(Date nowTime, Date beginTime,
+                                          Date endTime) {
+        Calendar date = Calendar.getInstance();
+        date.setTime(nowTime);
+        Calendar begin = Calendar.getInstance();
+        begin.setTime(beginTime);
+        Calendar end = Calendar.getInstance();
+        end.setTime(endTime);
+        return date.after(begin) && date.before(end);
     }
 }
