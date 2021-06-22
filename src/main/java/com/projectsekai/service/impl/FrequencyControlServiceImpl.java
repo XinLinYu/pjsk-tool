@@ -9,7 +9,6 @@ import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.utils.MiraiLogger;
-import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -23,7 +22,6 @@ import java.util.concurrent.CountDownLatch;
  * @description
  * @date 2021/6/21 0021 上午 10:48
  **/
-@Service
 public class FrequencyControlServiceImpl implements FrequencyControlService {
     private static RedisUtil redisUtil = null;
 
@@ -119,7 +117,7 @@ public class FrequencyControlServiceImpl implements FrequencyControlService {
             Boolean exists = redisUtil.exists(key);
             if (!exists) {
                 // 请体力小助手图片+文字
-                groupMessageEvent.getSubject().sendMessage(Image.fromId("{067981C8-0D09-BE10-9C25-626D97653999}.jpg").plus(new PlainText("大家好，我是本群的提醒烧烤请体力小助手，希望此刻看到消息的人可以和我一起打开PROJECT SEKAI COLORFUL STAGE! feat.初音ミク 清空体力，一小时后，我将继续提醒大家打开烧烤清空体力，和我一起成为一天清八次体力的排名背刺人吧！")));
+                groupMessageEvent.getSubject().sendMessage(Image.fromId("{067981C8-0D09-BE10-9C25-626D97653999}.jpg").plus(new PlainText("各位清火啦~~~（提醒从早上9点开始到晚上9点结束，活动期间Miku酱每隔一小时提醒一次哦~）")));
                 redisUtil.set(key, String.valueOf(groupMessageEvent.getGroup().getId()), 0);
                 // 1小时提醒一次
                 redisUtil.expire(key, 3600, 0);
@@ -142,17 +140,18 @@ public class FrequencyControlServiceImpl implements FrequencyControlService {
             Date endTime = null;
             try {
                 now = df.parse(df.format(new Date()));
-                beginTime = df.parse("23:00");
-                endTime = df.parse("8:00");
+                beginTime = df.parse("21:00");
+                endTime = df.parse("9:00");
             } catch (Exception e) {
                 e.printStackTrace();
             }
             boolean flag = belongCalendar(now, beginTime, endTime);
             if (flag) {
-                groupMessageEvent.getSubject().sendMessage("Miku酱要睡觉觉啦！明天再继续给大家提醒吧~╰(￣ω￣ｏ)");
+                log.info("在休眠期内……");
+                groupMessageEvent.getSubject().sendMessage("Miku酱要睡觉觉啦！明天再继续给大家提醒吧~╰(￣ω￣ｏ)！晚安~");
                 try {
-                    // 休眠期9小时
-                    Thread.sleep(32400000);
+                    // 休眠期12小时
+                    Thread.sleep(43200000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -176,6 +175,7 @@ public class FrequencyControlServiceImpl implements FrequencyControlService {
         begin.setTime(beginTime);
         Calendar end = Calendar.getInstance();
         end.setTime(endTime);
+        end.add(Calendar.DATE, 1);
         return date.after(begin) && date.before(end);
     }
 }
