@@ -53,15 +53,13 @@ public class FrequencyControlServiceImpl implements FrequencyControlService {
     public void instructionFrequencyControl(String instruction, int expire, GroupMessageEvent groupMessageEvent, String message) {
         redisUtil = getRedisUtilInstance();
         log = getInstance(groupMessageEvent);
-        log.info("GroupId：" + groupMessageEvent.getGroup().getId());
-        log.info("instruction：" + instruction);
         Boolean instructionExistsStatus = redisUtil.exists("pjsk_" + instruction + ":" + groupMessageEvent.getGroup().getId());
         log.info("instructionExistsStatus：" + instructionExistsStatus);
         if (null == instructionExistsStatus) {
             log.error("检测命令超时时间错误！");
         }
         if (instructionExistsStatus) {
-            groupMessageEvent.getSubject().sendMessage(PropertiesUtil.getInstance().read("欧尼酱~先让人家休息会嘛~马上再给欧尼酱回复哦~"));
+            groupMessageEvent.getSubject().sendMessage("欧尼酱~先让人家休息会嘛~马上再给欧尼酱回复哦~");
         } else {
             groupMessageEvent.getSubject().sendMessage(message);
             setInstructionExpire("pjsk_" + instruction + ":" + groupMessageEvent.getGroup().getId(), message, 0, expire);

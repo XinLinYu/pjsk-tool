@@ -9,6 +9,7 @@ import net.mamoe.mirai.utils.MiraiLogger;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.ReflectionUtils;
 import org.reflections.Reflections;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -70,15 +71,34 @@ public class InstructionHandle implements Consumer<GroupMessageEvent> {
                 if (method.isAnnotationPresent(InstructionVal.class)) {
                     InstructionVal annotation = method.getAnnotation(InstructionVal.class);
                     String[] value = annotation.value();
-                    for (String val : value) {
-                        // 判断注解的值与获得的信息是否一致
-                        String miraiCode = groupMessageEvent.getMessage().serializeToMiraiCode();
-                        if (miraiCode.trim().equalsIgnoreCase(val)) {
-                            try {
-                                // 一致则进入方法
-                                method.invoke(clazz.newInstance(), groupMessageEvent);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                    String type = annotation.type();
+                    // 如果自定义注解为空或者为静态则全判断，否则就进行模糊判断
+                    if (StringUtils.isEmpty(type) || "static".equals(type)) {
+                        for (String val : value) {
+                            // 判断注解的值与获得的信息是否一致
+                            String miraiCode = groupMessageEvent.getMessage().serializeToMiraiCode();
+                            if (miraiCode.trim().equalsIgnoreCase(val)) {
+                                try {
+                                    // 一致则进入方法
+                                    method.invoke(clazz.newInstance(), groupMessageEvent);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    } else {
+                        for (String val : value) {
+                            // 判断注解的值与获得的信息是否一致
+                            String miraiCode = groupMessageEvent.getMessage().serializeToMiraiCode();
+                            if (miraiCode.trim().startsWith(val)) {
+                                try {
+                                    String parameter = miraiCode.replace(val, "");
+                                    String[] parameterList = parameter.trim().split("\\s+");
+                                    // 一致则进入方法
+                                    method.invoke(clazz.newInstance(), groupMessageEvent, parameterList);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }

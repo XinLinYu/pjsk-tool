@@ -30,7 +30,7 @@ public class RedisUtil {
         if (jedisPool == null) {
             synchronized (JedisPool.class) {
                 if (jedisPool == null) {
-                    InputStream is = JedisPoolUtils.class.getClassLoader().getResourceAsStream("redis.properties");
+                    InputStream is = JedisPoolUtils.class.getClassLoader().getResourceAsStream("redis_dev.properties");
                     Properties properties = new Properties();
                     try {
                         properties.load(is);
