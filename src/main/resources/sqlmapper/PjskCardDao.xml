@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.projectsekai.dao.PjskCardDao">
+    <resultMap id="cardResultMap" type="com.projectsekai.entity.PjskCard">
+        <result property="cardCharacterName" column="CARD_CHARACTER_NAME" jdbcType="VARCHAR"/>
+        <result property="rarity" column="CARD_RARITY" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <select id="queryPjskCardList" resultMap="cardResultMap">
+        SELECT CARD_CHARACTER_NAME,
+               CARD_RARITY
+        FROM PJSK_CARD
+        WHERE CARD_CHARACTER_NAME = #{cardCharacterName,jdbcType=VARCHAR}
+          AND CARD_RARITY = #{rarity,jdbcType=INTEGER}
+    </select>
+</mapper>

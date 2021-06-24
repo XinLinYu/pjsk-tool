@@ -2,18 +2,14 @@ package com.projectsekai.controller;
 
 import com.projectsekai.annotation.InstructionTarget;
 import com.projectsekai.annotation.InstructionVal;
-import com.projectsekai.service.CardDataService;
+import com.projectsekai.service.PjskDataService;
 import com.projectsekai.service.FrequencyControlService;
-import com.projectsekai.service.impl.CardDataServiceImpl;
+import com.projectsekai.service.impl.PjskDataServiceImpl;
 import com.projectsekai.service.impl.FrequencyControlServiceImpl;
-import com.projectsekai.utils.PropertiesUtil;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.utils.MiraiLogger;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
 
 /**
  * @author XinlindeYu
@@ -28,7 +24,7 @@ public class PjskController {
 
     public static FrequencyControlService frequencyControlService = null;
 
-    public static CardDataService cardDataService;
+    public static PjskDataService cardDataService;
 
     public static MiraiLogger getInstance(GroupMessageEvent groupMessageEvent) {
         if (log == null) {
@@ -52,11 +48,11 @@ public class PjskController {
         return frequencyControlService;
     }
 
-    public static CardDataService getDataServiceInstance() {
+    public static PjskDataService getDataServiceInstance() {
         if (cardDataService == null) {
-            synchronized (CardDataService.class) {
+            synchronized (PjskDataService.class) {
                 if (cardDataService == null) {
-                    cardDataService = new CardDataServiceImpl();
+                    cardDataService = new PjskDataServiceImpl();
                 }
             }
         }
@@ -114,9 +110,16 @@ public class PjskController {
     }
 
     @InstructionVal(value = {"/pjsk card", "/pjsk 卡牌"}, type = "dynamic")
-    public void authorityPowerRemind(GroupMessageEvent groupMessageEvent, String[] value) {
+    public void cardData(GroupMessageEvent groupMessageEvent, String[] value) {
         log = getInstance(groupMessageEvent);
         cardDataService = getDataServiceInstance();
         cardDataService.getCardDataList(groupMessageEvent, value);
+    }
+
+    @InstructionVal(value = {"/pjsk character", "/pjsk 人物"}, type = "dynamic")
+    public void characterData(GroupMessageEvent groupMessageEvent, String[] value) {
+        log = getInstance(groupMessageEvent);
+        cardDataService = getDataServiceInstance();
+
     }
 }
